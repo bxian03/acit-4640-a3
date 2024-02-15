@@ -1,0 +1,78 @@
+---
+- name: Install dependencies
+  ansible.builtin.apt:
+    package:
+      - python3-venv
+      - python3-pip
+      - unzip
+      - python3-dev
+      - libmysqlclient-dev
+      - pkg-config
+      - acl
+      - python3-pymysql
+  become: true
+- name: Copy script to remote host template
+  ansible.builtin.template:
+    src: init.sql.j2
+    dest: /home/ubuntu/init.sql
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+- name: Configure mysql server
+  community.mysql.mysql_db:
+    state: import
+    name:
+      - all
+    target: /home/ubuntu/init.sql
+    # login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_host: "{{ db_address }}"
+    login_user: ansible
+    login_password: Never-Outhouse-Amount-Ammonium1
+  become: true
+- name: Create user
+  ansible.builtin.user:
+    name: a01
+    home: /a01
+  become: true
+- name: Download and unzip source code
+  ansible.builtin.unarchive:
+    src: https://github.com/timoguic/acit4640-py-mysql/archive/refs/heads/master.zip
+    dest: /a01/
+    remote_src: true
+  become: true
+- name: Set user and permission of source code
+  ansible.builtin.file:
+    path: /a01/
+    owner: a01
+  become: true
+- name: Install python packages for user
+  ansible.builtin.pip:
+    requirements: /a01/acit4640-py-mysql-master/backend/requirements.txt
+    extra_args: --user --break-system-packages
+  # remote_user: ubuntu
+  become: true
+  # become_method: ansible.builtin.su
+  become_user: a01
+- name: Configure backend config
+  ansible.builtin.lineinfile:
+    path: /a01/acit4640-py-mysql-master/backend/backend.conf
+    search_string: MYSQL_HOST
+    state: present
+    line: "MYSQL_HOST = {{ db_address }}"
+  become: true
+- name: Create backend unit file
+  ansible.builtin.template:
+    src: backend.service.j2
+    dest: /etc/systemd/system/backend.service
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  notify: Enable backend
+# - name: Enable backend ansible.builtin.service
+#   ansible.builtin.systemd_service:
+#     name: backend
+#     state: started
+#     daemon_reload: true
+#     enabled: true
+#   become: true

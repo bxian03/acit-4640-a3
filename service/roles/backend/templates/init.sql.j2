@@ -1,0 +1,21 @@
+DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+
+CREATE USER IF NOT EXISTS 'example'@'{{ backend_ip }}';
+ALTER USER 'example'@'{{ backend_ip }}' IDENTIFIED BY 'secure';
+CREATE DATABASE IF NOT EXISTS backend;
+GRANT ALL PRIVILEGES ON backend.* TO 'example'@'{{ backend_ip }}';
+FLUSH PRIVILEGES;
+
+use backend;
+
+CREATE TABLE IF NOT EXISTS item (
+  name varchar(30) NOT NULL,
+  bcit_id varchar(10) NOT NULL,
+  PRIMARY KEY (bcit_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT IGNORE INTO backend.item (name, bcit_id) VALUES ('Brian Xian', 'A001266291');

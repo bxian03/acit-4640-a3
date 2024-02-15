@@ -1,0 +1,10 @@
+---
+- name: Update apt cache and install network tools
+  ansible.builtin.apt:
+    update_cache: true
+    package:
+      - nmap
+      - tcpdump
+      - bind9-dnsutils
+      - mysql-client
+  become: true

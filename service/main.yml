@@ -1,0 +1,34 @@
+- name: Apply common config
+  hosts: all
+  roles:
+    - common
+# - name: Configure rds DB
+#   hosts: backend
+#   tasks:
+#     - name: Copy script to remote host template
+#       ansible.builtin.template:
+#         src: ./templates/init.sql.j2
+#         dest: /home/ubuntu/init.sql
+#         owner: ubuntu
+#         group: ubuntu
+#         mode: '0755'
+#     - name: Configure mysql server
+#       community.mysql.mysql_db:
+#         state: import
+#         name:
+#           - all
+#         target: /home/ubuntu/init.sql
+#         login_unix_socket: /var/run/mysqld/mysqld.sock
+#       become: true
+- name: Configure backend
+  hosts: _backend
+  vars_files:
+    - ./group_vars/servers.yml
+  roles:
+    - backend
+- name: Configure web
+  hosts: _web
+  vars_files:
+    - ./group_vars/servers.yml
+  roles:
+    - web

@@ -1,0 +1,7 @@
+- name: Enable backend
+  ansible.builtin.systemd_service:
+    name: backend
+    state: started
+    daemon_reload: true
+    enabled: true
+  become: true

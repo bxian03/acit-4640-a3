@@ -1,0 +1,53 @@
+- name: Install nginx
+  ansible.builtin.apt:
+    name:
+      - nginx
+  become: true
+- name: Make web directory
+  ansible.builtin.file:
+    path: /var/www/a02
+    state: directory
+    mode: "0755"
+    owner: www-data
+    group: www-data
+  become: true
+- name: Create nginx server block
+  ansible.builtin.template:
+    src: a02.j2
+    dest: /etc/nginx/sites-available/a02
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+- name: Create server block symbolic link
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/a02
+    dest: /etc/nginx/sites-enabled/a02
+    owner: root
+    group: root
+    state: link
+  become: true
+- name: Prevent long domain name error
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/nginx.conf
+    search_string: server_names_hash_bucket_size
+    state: present
+    line: "server_names_hash_bucket_size 128;"
+  become: true
+- name: Delete default
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  become: true
+  notify: Enable and restart nginx
+# - name: Enable and restart nginx
+#   ansible.builtin.systemd:
+#     name: nginx
+#     state: restarted
+#   become: true
+- name: Copy front end
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/timoguic/acit4640-py-mysql/master/frontend/index.html
+    dest: /var/www/a02/index.html
+    mode: '0644'
+  become: true

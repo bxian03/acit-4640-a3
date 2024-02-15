@@ -1,0 +1,26 @@
+---
+plugin: amazon.aws.aws_ec2
+
+regions:
+  - us-west-2
+
+compose:
+  ansible_host: public_dns_name
+  # ansible_host: tags.Name
+
+
+keyed_groups:
+  - key: tags.Name
+    prefix: ""
+    seperator: "_"
+  - key: tags.Project
+    prefix: ""
+    seperator: "_"
+
+# hostnames:
+#   - dns-name
+
+
+#   web_public_dns: public_dns_name
+#   web_ip: private_ip_address
+#   backend_ip: private_ip_address
